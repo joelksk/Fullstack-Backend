@@ -1,0 +1,17 @@
+GET http://localhost:3001/api/persons/5a9046aa-fe95-407d-aac8-54e5b8a14262
+
+###
+GET http://localhost:3001/api/persons
+
+###
+DELETE http://localhost:3001/api/persons/5a9046aa-fe95-407d-aac8-54e5b8a14262
+
+###
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+
+{
+    "name": "Javito Juarez",
+    "number": "+59-11-258746985"
+}
