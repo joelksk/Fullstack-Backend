@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import morgan from 'morgan';
 import cors from 'cors';
 const app = express();
-app.use(express.json(), cors());
+app.use(express.json(), cors(), express.static('dist'));
 morgan.token('body',(req) => { return JSON.stringify(req.body)})
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
