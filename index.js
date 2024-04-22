@@ -2,6 +2,8 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import morgan from 'morgan';
 import cors from 'cors';
+import 'dotenv/config'
+import Person from './models/personModel.js'
 const app = express();
 app.use(express.json(), cors(), express.static('dist'));
 morgan.token('body',(req) => { return JSON.stringify(req.body)})
@@ -30,8 +32,6 @@ let persons = [
     }
 ]
 
-
-
 const getDate = () => {
   const options = {
     weekday: 'short',
@@ -47,69 +47,102 @@ const getDate = () => {
   return date.toLocaleString('en-US', options);
 }
 
-const searchPerson = (name) => {
-  const person = persons.filter(person => person.name.toLowerCase() === name.toLowerCase())
-  if(person.length > 0) {
-    return true
-  }else{
-    return false
-  }
-}
-
-app.get("/api/persons", (req, res) => {
+//GET ALL PERSONS
+app.get("/api/persons", (req, res, next) => {
+  Person.find({}).then(persons => {
     res.json(persons)
+  }).catch(err => next(err))
 })
 
-app.get('/api/persons/:id', (req, res) => {
-    const id = req.params.id
-    const person = persons.find(person => person.id === id)
-    
-    if (person) {
-      res.json(person)
-    } else {
-      res.status(404).end()
-    }
+//FIND A PERSON BY ID
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id).then(person => {
+      if(person){
+        res.status(200).json(person)
+      }else{
+        res.status(404).json({Error: 'Not Found'})
+      }
+    }).catch(err => next(err))
 })
 
-app.get("/info", (req, res) => {
-    res.send(
-      `<p>
-        Phonebook has info for ${persons.length} people
-        <br/>
-        ${getDate()}
-      </p>`
-    )
-})
 
-app.delete('/api/persons/:id', (req, res) => {
-  const personToDelete = persons.filter(person => person.id === req.params.id)
-  if(personToDelete.length > 0){
-    persons = persons.filter(person => person.id != req.params.id)
-    res.status(204).end()
-  }else{
-    res.status(404).end()
-  }
-})
-
-app.post('/api/persons', (req, res) => {
+//ADD NEW PERSON TO PHONEBOOK
+app.post('/api/persons', (req, res, next) => {
   if(!req.body.name || !req.body.number){
     return res.status(400).json({
-      error: "Name and Number must not be void"
+      Error: "Name and Number must not be void"
     }) 
-  }else if(searchPerson(req.body.name)){
-    return res.status(400).json({
-      error: `${req.body.name} was already registered.`
-    })
-  } else{
-    const person = {
-      id: uuidv4(),
-      name: req.body.name,
-      number: req.body.number
-    }
-    persons = persons.concat(person);
-    return res.status(201).json(person)
   }
+  
+  Person.find({name: req.body.name})
+    .then(result => {
+      if(result.length > 0){
+        const newPerson = {
+            name: req.body.name,
+            number: req.body.number
+        }
+        const id = result[0].id
+        Person.findByIdAndUpdate(
+          id, 
+          newPerson, 
+          { new: true, runValidators: true, context: 'query' })
+          .then(updatedPerson => {
+            res.json(updatedPerson)
+          }).catch(err => next(err))
+      }else{
+        const person = new Person({
+          name: req.body.name,
+          number: req.body.number
+        })
+          person.save().then(savedPerson => {
+              res.status(201).json(savedPerson)
+          }).catch(err => next(err))
+      }
+  }).catch(err => next(err))
+
 })
+
+//DELETE A PERSON BY ID
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
+    .then(personDeleted => {
+      if(personDeleted){
+        res.status(204).end()
+      }else{
+        res.status(404).json({Error: "not found"})
+      }
+    }).catch(err => next(err))
+})
+
+
+//GET INFO
+app.get("/info", (req, res) => {
+  Person.countDocuments()
+    .then(personDocuments => {
+      res.send(
+        `<p>
+          Phonebook has info for ${personDocuments} people
+          <br/>
+          ${getDate()}
+        </p>`
+      )
+    }).catch(err => next(err))
+})
+
+
+//HANDLE RERROR MANAGER
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message)
+  if (err.name === 'CastError') {
+    return res.status(400).send({ Error: 'malformatted id' })
+  } else if (err.name === 'ValidationError') {
+    return res.status(400).json({ Error: err.message })
+  }
+  next(err)
+}
+
+app.use(errorHandler)
+
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

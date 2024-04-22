@@ -1,10 +1,10 @@
-GET http://localhost:3001/api/persons/5a9046aa-fe95-407d-aac8-54e5b8a14262
+GET http://localhost:3001/api/persons/662331f542f64953fcbbbe5
 
 ###
 GET http://localhost:3001/api/persons
 
 ###
-DELETE http://localhost:3001/api/persons/5a9046aa-fe95-407d-aac8-54e5b8a14262
+DELETE http://localhost:3001/api/persons/6626642aa994af67f0a74ea
 
 ###
 POST http://localhost:3001/api/persons
@@ -12,6 +12,6 @@ content-type: application/json
 
 
 {
-    "name": "Javito Juarez",
-    "number": "+59-11-258746985"
+    "name": "jaim",
+    "number": "12341-2456"
 }
