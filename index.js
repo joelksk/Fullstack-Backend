@@ -9,28 +9,6 @@ app.use(express.json(), cors(), express.static('dist'));
 morgan.token('body',(req) => { return JSON.stringify(req.body)})
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = [
-    { 
-      "id": "5a9046aa-fe95-407d-aac8-54e5b8a14263",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "5a9046aa-fe95-407d-aac8-54e5b8a14262",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "5a9046aa-fe95-407d-aac8-54e5b8a14261",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "5a9046aa-fe95-407d-aac8-54e5b8a14260",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
 
 const getDate = () => {
   const options = {
